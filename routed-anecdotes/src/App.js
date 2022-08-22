@@ -3,6 +3,7 @@ import {
   BrowserRouter as Router,
   Route, Link, Routes, useParams, useNavigate
 } from "react-router-dom"
+import { useField } from './hooks'
 
 const Menu = () => {
   const padding = {
@@ -19,7 +20,7 @@ const Menu = () => {
 }
 
 // Exercise 7.3 - Part 1
-const Notification = ({ message}) => {
+const Notification = ({ message }) => {
   if (message === '') {
     return null
   }
@@ -30,7 +31,7 @@ const Notification = ({ message}) => {
 
 const AnecdoteList = ({ anecdotes, notification }) => (
   <div>
-    <Notification message={notification}/>
+    <Notification message={notification} />
     <h2>Anecdotes</h2>
     <ul>
       {anecdotes.map(anecdote =>
@@ -77,40 +78,64 @@ const Footer = () => (
 )
 
 const CreateNew = (props) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
   const navigate = useNavigate();
+  // Exercise 7.4
+  const content = useField('text')
+  const author = useField('text')
+  const info = useField('text')
+  // Exercise 7.5
+  const [isReset, setIsReset] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    props.addNew({
-      content,
-      author,
-      info,
-      votes: 0
-    })
-  // Exercise 7.3 - Part 2
-    navigate('/anecdotes')
+    if (isReset) {
+      //console.log('reset')
+      content.reset()
+      author.reset()
+      info.reset()
+      setIsReset(false)
+    } else {
+      props.addNew({
+        content: content.value,
+        author: author.value,
+        info: info.value,
+        votes: 0
+      })
+      // Exercise 7.3 - Part 2
+      navigate('/anecdotes')
+    }
   }
-
+  // Exercise 7.6
   return (
     <div>
       <h2>create a new anecdote</h2>
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          <input 
+            name='content'
+            {...content}
+            reset=''
+          />
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input
+            name='author'
+            {...author}
+            reset=''
+          />
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
+          <input 
+            name='info'
+            {...info}
+            reset=''
+          />
         </div>
         <button>create</button>
+        <button onClick={() => setIsReset(true)}>reset</button>
       </form>
     </div>
   )
@@ -173,7 +198,7 @@ const App = () => {
         <h1>Software anecdotes</h1>
         <Menu />
         <Routes>
-          <Route path="/anecdotes" element={<AnecdoteList anecdotes={anecdotes} notification={notification}/>} />
+          <Route path="/anecdotes" element={<AnecdoteList anecdotes={anecdotes} notification={notification} />} />
           <Route path="/anecdotes/:id" element={<Anecdote anecdotes={anecdotes} />} />
           <Route path="/create" element={<CreateNew addNew={addNew} />} />
           <Route path="/about" element={<About />} />
